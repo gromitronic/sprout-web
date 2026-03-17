@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-fraunces: 'Fraunces', Georgia, serif;
+    --font-sora: 'Sora', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  ::selection {
+    background: #5A9E65;
+    color: #fff;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #F2FAF3; }
+  ::-webkit-scrollbar-thumb { background: #82C08B; border-radius: 3px; }
+}
+
+@layer components {
+  .font-display { font-family: var(--font-fraunces); }
+  .font-body    { font-family: var(--font-sora); }
+
+  .grain-overlay {
+    position: relative;
+  }
+  .grain-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+    border-radius: inherit;
+  }
+
+  /* Layer animation helper */
+  .layer-item {
+    will-change: transform;
+    transition: transform 0.05s linear;
+  }
+}
