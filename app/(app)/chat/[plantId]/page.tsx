@@ -61,9 +61,7 @@ export default function PlantChatPage() {
     setMessages(prev => [...prev, { id: typingId, role: 'assistant', content: '...', created_at: new Date().toISOString() }])
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('Not signed in')
-      const response = await sendChatMessage(session.access_token, plantId, text)
+      const response = await sendChatMessage(supabase, plantId, text)
 
       setMessages(prev => prev.filter(m => m.id !== typingId).concat({
         id: `ai-${tempId}`,

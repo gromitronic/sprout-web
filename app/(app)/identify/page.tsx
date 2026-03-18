@@ -30,11 +30,9 @@ export default function IdentifyPage() {
     if (!preview) return
     setScanning(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { toast.error('Please sign in'); return }
       const base64 = preview.split(',')[1]
       const mediaType = preview.split(';')[0].split(':')[1] as 'image/jpeg' | 'image/png'
-      const data = await identifyPlant(session.access_token, base64, mediaType)
+      const data = await identifyPlant(supabase, base64, mediaType)
       setResult(data)
       if (data.identified) toast.success(`🌱 +${data.xp_earned} XP! ${data.common_name} identified!`)
     } catch (err: any) {
@@ -73,8 +71,7 @@ export default function IdentifyPage() {
       if (error) throw error
 
       // Award +10 XP for adding to garden
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: 10, p_multiplier: false })
+      await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: 10, p_multiplier: false })
       await supabase.rpc('increment_plant_count', { p_user_id: user.id })
 
       toast.success('🌿 Added to your garden! +10 XP')

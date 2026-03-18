@@ -40,9 +40,7 @@ export default function PlannerPage() {
     setGenerating(true)
     setResult(null)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('Not signed in')
-      const data = await generateLayout(session.access_token, {
+      const data = await generateLayout(supabase, {
         width_ft: parseFloat(lWidth), length_ft: parseFloat(lLength),
         space_type: spaceType, goals, sun_exposure: sun,
         soil_type: 'raised_mix', budget_range: 'medium',
@@ -62,9 +60,7 @@ export default function PlannerPage() {
     setGenerating(true)
     setResult(null)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('Not signed in')
-      const data = await generateStructure(session.access_token, {
+      const data = await generateStructure(supabase, {
         structure_type: sType, width_ft: parseFloat(sWidth),
         length_ft: parseFloat(sLength), height_ft: sHeight ? parseFloat(sHeight) : undefined,
       })

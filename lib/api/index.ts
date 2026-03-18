@@ -1,36 +1,29 @@
 // lib/api/index.ts
 // Typed wrappers around the three SPROUT Edge Functions
+// Uses Supabase client's functions.invoke() for proper auth handling
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 async function callEdgeFunction(
+  supabase: SupabaseClient,
   fnName: string,
-  token: string,
   body: Record<string, unknown>
 ) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/${fnName}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      'apikey': SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify(body),
+  const { data, error } = await supabase.functions.invoke(fnName, {
+    body,
   })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error ?? 'Edge function error')
+  if (error) throw new Error(error.message ?? 'Edge function error')
   return data
 }
 
 // ── Plant Chat ──────────────────────────────────────────────────────
 export async function sendChatMessage(
-  token: string,
+  supabase: SupabaseClient,
   plantId: string,
   message: string,
   photoUrl?: string
 ): Promise<{ message: string; xp_earned: number }> {
-  return callEdgeFunction('sprout-ai-chat', token, {
+  return callEdgeFunction(supabase, 'sprout-ai-chat', {
     plant_id: plantId,
     message,
     photo_url: photoUrl,
@@ -62,11 +55,11 @@ export interface IdentifyResult {
 }
 
 export async function identifyPlant(
-  token: string,
+  supabase: SupabaseClient,
   photoBase64: string,
   mediaType = 'image/jpeg'
 ): Promise<IdentifyResult> {
-  return callEdgeFunction('sprout-identify', token, {
+  return callEdgeFunction(supabase, 'sprout-identify', {
     photo_base64: photoBase64,
     media_type: mediaType,
   })
@@ -74,7 +67,7 @@ export async function identifyPlant(
 
 // ── Garden Planner ──────────────────────────────────────────────────
 export async function generateLayout(
-  token: string,
+  supabase: SupabaseClient,
   params: {
     width_ft: number
     length_ft: number
@@ -87,14 +80,14 @@ export async function generateLayout(
     time_per_week: number
   }
 ): Promise<Record<string, unknown>> {
-  return callEdgeFunction('sprout-planner', token, {
+  return callEdgeFunction(supabase, 'sprout-planner', {
     action: 'generate_layout',
     ...params,
   })
 }
 
 export async function generateStructure(
-  token: string,
+  supabase: SupabaseClient,
   params: {
     structure_type: string
     width_ft: number
@@ -103,7 +96,7 @@ export async function generateStructure(
     layout_id?: string
   }
 ): Promise<Record<string, unknown>> {
-  return callEdgeFunction('sprout-planner', token, {
+  return callEdgeFunction(supabase, 'sprout-planner', {
     action: 'generate_structure',
     ...params,
   })
