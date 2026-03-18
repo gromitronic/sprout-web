@@ -1,20 +1,6 @@
-// app/layout.tsx
 import type { Metadata } from 'next'
-import { Fraunces, Sora } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
-
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-fraunces',
-  display: 'swap',
-})
-
-const sora = Sora({
-  subsets: ['latin'],
-  variable: '--font-sora',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: 'SPROUT — AI Gardening by Gromitron',
@@ -23,13 +9,17 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'SPROUT — AI Gardening by Gromitron',
     description: 'Grow smarter. Grow anywhere.',
-    images: ['/og-image.png'],
   },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${sora.variable}`}>
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Sora:wght@100..800&display=swap" rel="stylesheet" />
+      </head>
       <body className="bg-cream font-body text-green-ink antialiased">
         {children}
         <Toaster
@@ -38,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             style: {
               background: '#1E3822',
               color: '#B8DDBC',
-              fontFamily: 'var(--font-sora)',
+              fontFamily: 'Sora, system-ui, sans-serif',
               fontSize: '14px',
               borderRadius: '12px',
             },
