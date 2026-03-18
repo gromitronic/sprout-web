@@ -35,12 +35,13 @@ export async function sendChatMessage(
   supabase: SupabaseClient,
   plantId: string,
   message: string,
-  photoUrl?: string
+  opts?: { photo_base64?: string; media_type?: string }
 ): Promise<{ message: string; xp_earned: number }> {
   return callEdgeFunction(supabase, 'sprout-ai-chat', {
     plant_id: plantId,
     message,
-    photo_url: photoUrl,
+    photo_base64: opts?.photo_base64,
+    media_type: opts?.media_type,
   })
 }
 
@@ -54,11 +55,14 @@ export interface GeneralChatResult {
 export async function sendGeneralChat(
   supabase: SupabaseClient,
   message: string,
-  history?: { role: string; content: string }[]
+  history?: { role: string; content: string }[],
+  opts?: { photo_base64?: string; media_type?: string }
 ): Promise<GeneralChatResult> {
   return callEdgeFunction(supabase, 'sprout-general-chat', {
     message,
     history,
+    photo_base64: opts?.photo_base64,
+    media_type: opts?.media_type,
   })
 }
 

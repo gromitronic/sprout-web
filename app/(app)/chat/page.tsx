@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -16,7 +16,7 @@ type Plant = {
   day_count: number
 }
 
-type Message = { id: string; role: 'user' | 'assistant'; content: string }
+type Message = { id: string; role: 'user' | 'assistant'; content: string; photo_url?: string }
 
 const HEALTH_COLOR: Record<string, string> = {
   thriving: 'text-green-400',
@@ -39,12 +39,35 @@ export default function ChatIndexPage() {
   const router = useRouter()
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const [plants, setPlants] = useState<Plant[]>([])
   const [loading, setLoading] = useState(true)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [photoBase64, setPhotoBase64] = useState<string | null>(null)
+  const [photoType, setPhotoType] = useState<string>('image/jpeg')
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result as string
+      setPhotoPreview(dataUrl)
+      setPhotoBase64(dataUrl.split(',')[1])
+      setPhotoType(file.type || 'image/jpeg')
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }, [])
+
+  function clearPhoto() {
+    setPhotoPreview(null)
+    setPhotoBase64(null)
+  }
 
   useEffect(() => {
     async function load() {
@@ -68,14 +91,19 @@ export default function ChatIndexPage() {
   }, [messages])
 
   async function sendMessage(text: string) {
-    if (!text.trim() || sending) return
+    if ((!text.trim() && !photoBase64) || sending) return
     setSending(true)
+    const msgText = text.trim() || (photoBase64 ? 'What do you see in this photo?' : '')
     setInput('')
 
     const tempId = Date.now().toString()
-    setMessages(prev => [...prev, { id: tempId, role: 'user', content: text }])
+    setMessages(prev => [...prev, { id: tempId, role: 'user', content: msgText, photo_url: photoPreview ?? undefined }])
     const typingId = `typing-${tempId}`
     setMessages(prev => [...prev, { id: typingId, role: 'assistant', content: '...' }])
+
+    const sentBase64 = photoBase64
+    const sentType = photoType
+    clearPhoto()
 
     try {
       // Build history from existing messages (exclude typing indicators)
@@ -83,7 +111,9 @@ export default function ChatIndexPage() {
         .filter(m => m.content !== '...')
         .map(m => ({ role: m.role, content: m.content }))
 
-      const response = await sendGeneralChat(supabase, text, history)
+      const response = await sendGeneralChat(supabase, msgText, history,
+        sentBase64 ? { photo_base64: sentBase64, media_type: sentType } : undefined
+      )
 
       setMessages(prev =>
         prev.filter(m => m.id !== typingId).concat({
@@ -161,6 +191,9 @@ export default function ChatIndexPage() {
                         ? 'bg-white border border-green-100 text-green-400 rounded-tl-sm'
                         : 'bg-white border border-green-100 text-green-900 rounded-tl-sm shadow-sm'
                     }`}>
+                    {msg.photo_url && (
+                      <img src={msg.photo_url} alt="Photo" className="rounded-lg mb-2 max-h-48 w-auto" />
+                    )}
                     {msg.content === '...' ? (
                       <span className="flex gap-1">
                         {[0, 1, 2].map(i => (
@@ -187,8 +220,29 @@ export default function ChatIndexPage() {
             </div>
           )}
 
+          {/* Photo preview */}
+          {photoPreview && (
+            <div className="px-4 py-2 bg-white border-t border-green-100">
+              <div className="relative inline-block">
+                <img src={photoPreview} alt="Upload preview" className="h-20 rounded-lg border border-green-200" />
+                <button onClick={clearPhoto}
+                  className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Input */}
           <div className="px-4 py-3 bg-white border-t border-green-100 flex gap-2">
+            <input type="file" ref={fileRef} accept="image/*" className="hidden" onChange={handleFileSelect} />
+            <button onClick={() => fileRef.current?.click()} disabled={sending}
+              className="bg-green-50 hover:bg-green-100 border border-green-200 text-green-600 px-3 py-2.5 rounded-xl transition-colors flex-shrink-0 disabled:opacity-40">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+              </svg>
+            </button>
             <input
               ref={inputRef}
               value={input}
@@ -199,7 +253,7 @@ export default function ChatIndexPage() {
             />
             <button
               onClick={() => sendMessage(input)}
-              disabled={!input.trim() || sending}
+              disabled={(!input.trim() && !photoBase64) || sending}
               className="bg-green-700 hover:bg-green-600 disabled:opacity-40 text-white px-4 py-2.5 rounded-xl transition-all hover:-translate-y-px flex-shrink-0">
               {sending ? (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin block" />
