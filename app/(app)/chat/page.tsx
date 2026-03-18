@@ -4,6 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { sendGeneralChat } from '@/lib/api'
+import toast from 'react-hot-toast'
 
 type Plant = {
   id: string
@@ -26,18 +28,10 @@ const HEALTH_COLOR: Record<string, string> = {
 
 const QUICK_QUESTIONS = [
   'What can I plant right now?',
-  'How do I identify a plant?',
+  'I want to grow tomatoes',
   'How does the planner work?',
   'What are companion plants?',
-  'How do I earn XP?',
-]
-
-const APP_TIPS = [
-  { icon: '🔍', title: 'Identify a Plant', desc: 'Snap a photo and Sprout identifies it instantly with zone-specific care tips.', href: '/identify' },
-  { icon: '🌿', title: 'Your Garden', desc: 'Track all your plants — health, watering schedules, and day counts.', href: '/garden' },
-  { icon: '🤝', title: 'Companion Planting', desc: 'Find out which plants grow better together and which to keep apart.', href: '/companions' },
-  { icon: '📐', title: 'Garden Planner', desc: 'AI-designed layouts with plant lists, companion guilds, and build plans.', href: '/planner' },
-  { icon: '🏆', title: 'Rewards & XP', desc: 'Earn XP by chatting, identifying, planning, and keeping your streak.', href: '/rewards' },
+  'Help me start a garden',
 ]
 
 export default function ChatIndexPage() {
@@ -51,20 +45,19 @@ export default function ChatIndexPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
-  const [zone, setZone] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const [{ data: plantData }, { data: profile }] = await Promise.all([
-        supabase.from('plants').select('id, common_name, latin_name, emoji, health_status, day_count').eq('user_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('profiles').select('usda_zone').eq('id', user.id).single(),
-      ])
+      const { data: plantData } = await supabase
+        .from('plants')
+        .select('id, common_name, latin_name, emoji, health_status, day_count')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
 
       setPlants(plantData ?? [])
-      setZone(profile?.usda_zone ?? null)
       setLoading(false)
     }
     load()
@@ -84,21 +77,47 @@ export default function ChatIndexPage() {
     const typingId = `typing-${tempId}`
     setMessages(prev => [...prev, { id: typingId, role: 'assistant', content: '...' }])
 
-    // Use local fallback since the edge function requires a plant_id
-    // In v2 we can add a general chat edge function
-    const reply = getLocalResponse(text, zone)
-    // Small delay to feel natural
-    await new Promise(r => setTimeout(r, 600))
+    try {
+      // Build history from existing messages (exclude typing indicators)
+      const history = messages
+        .filter(m => m.content !== '...')
+        .map(m => ({ role: m.role, content: m.content }))
 
-    setMessages(prev =>
-      prev.filter(m => m.id !== typingId).concat({
-        id: `ai-${tempId}`,
-        role: 'assistant',
-        content: reply,
-      })
-    )
-    setSending(false)
-    inputRef.current?.focus()
+      const response = await sendGeneralChat(supabase, text, history)
+
+      setMessages(prev =>
+        prev.filter(m => m.id !== typingId).concat({
+          id: `ai-${tempId}`,
+          role: 'assistant',
+          content: response.message,
+        })
+      )
+
+      if (response.xp_earned > 0) {
+        toast.success(`+${response.xp_earned} XP`)
+      }
+
+      // If a plant was added from the chat
+      if (response.added_plant) {
+        toast.success(`${response.added_plant.emoji} ${response.added_plant.common_name} added to your garden! +10 XP`)
+        // Refresh plant list
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: plantData } = await supabase
+            .from('plants')
+            .select('id, common_name, latin_name, emoji, health_status, day_count')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+          setPlants(plantData ?? [])
+        }
+      }
+    } catch (err: any) {
+      setMessages(prev => prev.filter(m => m.id !== typingId))
+      toast.error(err.message ?? 'Could not send message')
+    } finally {
+      setSending(false)
+      inputRef.current?.focus()
+    }
   }
 
   return (
@@ -123,7 +142,7 @@ export default function ChatIndexPage() {
                 </div>
                 <div className="bg-white border border-green-100 rounded-2xl rounded-tl-sm px-4 py-2.5 shadow-sm max-w-[85%]">
                   <p className="text-green-900 font-body text-sm leading-relaxed">
-                    Hey there! I&apos;m Sprout 🌱 Ask me anything about gardening, how to use the app, or what to plant this season. Try one of the quick questions below!
+                    Hey there! I&apos;m Sprout 🌱 I&apos;m your AI gardening expert. Ask me what to plant, how to fix a pest problem, or even say &quot;I want to grow tomatoes&quot; and I&apos;ll add them to your garden!
                   </p>
                 </div>
               </div>
@@ -175,7 +194,7 @@ export default function ChatIndexPage() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
-              placeholder="Ask Sprout anything..."
+              placeholder="Ask Sprout anything about gardening..."
               className="flex-1 bg-green-50 border border-green-200 text-green-900 placeholder-green-400 font-body text-sm px-4 py-2.5 rounded-xl outline-none focus:border-green-500 transition-colors"
             />
             <button
@@ -225,11 +244,11 @@ export default function ChatIndexPage() {
         <section className="mb-8">
           <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
             <p className="text-green-700 font-body text-sm mb-3">
-              Add your first plant to get personalized AI chat about its care!
+              No plants yet! Ask Sprout above to add one — try &quot;I want to grow basil&quot; — or identify a plant with a photo.
             </p>
             <Link href="/identify"
               className="inline-flex items-center gap-2 bg-green-700 hover:bg-green-600 text-white font-body font-bold text-sm px-5 py-2.5 rounded-xl transition-all hover:-translate-y-px">
-              🔍 Identify Your First Plant
+              🔍 Identify a Plant with Photo
             </Link>
           </div>
         </section>
@@ -241,7 +260,13 @@ export default function ChatIndexPage() {
           <span>📖</span> How SPROUT Works
         </h2>
         <div className="grid gap-2">
-          {APP_TIPS.map(tip => (
+          {[
+            { icon: '🔍', title: 'Identify a Plant', desc: 'Snap a photo and Sprout identifies it instantly with zone-specific care tips.', href: '/identify' },
+            { icon: '🌿', title: 'Your Garden', desc: 'Track all your plants — health, watering schedules, and day counts.', href: '/garden' },
+            { icon: '🤝', title: 'Companion Planting', desc: 'Find out which plants grow better together and which to keep apart.', href: '/companions' },
+            { icon: '📐', title: 'Garden Planner', desc: 'AI-designed layouts with plant lists, companion guilds, and build plans.', href: '/planner' },
+            { icon: '🏆', title: 'Rewards & XP', desc: 'Earn XP by chatting, identifying, planning, and keeping your streak.', href: '/rewards' },
+          ].map(tip => (
             <Link key={tip.href} href={tip.href}
               className="flex items-start gap-3 bg-white border border-green-100 hover:border-green-300 rounded-xl px-4 py-3 transition-all hover:shadow-md group">
               <span className="text-xl mt-0.5">{tip.icon}</span>
@@ -256,57 +281,4 @@ export default function ChatIndexPage() {
       </section>
     </div>
   )
-}
-
-/** Smart local responses for the general Sprout chat */
-function getLocalResponse(question: string, zone: string | null): string {
-  const q = question.toLowerCase()
-  const zoneInfo = zone ? ` You're in Zone ${zone}, so I'll tailor my advice accordingly!` : ' Head to Settings to set your USDA zone for personalized recommendations.'
-
-  // Greetings
-  if (q.match(/^(hi|hey|hello|yo|sup|what'?s up|howdy)/))
-    return `Hey there! 👋 I'm Sprout, your gardening buddy. I can help you figure out what to plant, how to use any feature in the app, or answer care questions about your plants. What's on your mind?`
-
-  // Identity / photo
-  if (q.includes('identify') || q.includes('photo') || q.includes('snap') || q.includes('scan') || q.includes('what plant'))
-    return `To identify a plant, tap the 🔍 Identify tab in the sidebar. Upload or snap a photo and I'll tell you the species, care requirements, zone compatibility, and companion plants — all in seconds! You'll earn +15 XP too. Once identified, you can add it to your garden with one tap.`
-
-  // Planner
-  if (q.includes('planner') || q.includes('layout') || q.includes('design') || q.includes('plan'))
-    return `The Garden Planner (📐) is super powerful! Enter your space dimensions, goals (food, flowers, pollinators, etc.), sun exposure, and skill level. I'll generate a complete layout with plant suggestions, companion guilds, and seasonal tips. There's also a Structure Builder for raised beds, trellises, cold frames — with full materials lists, cut lists, and step-by-step instructions. +30 XP per plan!`
-
-  // Companion planting
-  if (q.includes('companion') || q.includes('together') || q.includes('pair') || q.includes('guild'))
-    return `Companion planting is about which plants help each other thrive! 🤝 Head to the Companions tab to look up any plant. Classic examples: basil + tomatoes repel pests, marigolds protect everything, and beans fix nitrogen for hungry feeders. I'll also warn you about bad combos — like fennel, which fights with almost everything!`
-
-  // XP / rewards / badges / streak
-  if (q.includes('xp') || q.includes('reward') || q.includes('level') || q.includes('streak') || q.includes('badge') || q.includes('earn'))
-    return `Here's how you earn XP in SPROUT! 💪 Chatting about a plant: +3 XP. Identifying a plant: +15 XP. Adding to garden: +10 XP. Generating a layout or build plan: +30 XP each. Keep logging in daily to build your streak — check the 🏆 Rewards tab for badges like "Green Thumb" and "Master Planner"!`
-
-  // What to plant / season / now
-  if (q.includes('plant') && (q.includes('now') || q.includes('this month') || q.includes('season') || q.includes('right now') || q.includes('today') || q.includes('spring') || q.includes('march')))
-    return `Great question!${zoneInfo} In mid-March, cool-season crops are your best bet — think lettuce, spinach, peas, radishes, and kale. If you want flowers, pansies and snapdragons love cool weather. Use the 📐 Garden Planner to get a personalized layout for your exact space and goals!`
-
-  // Garden page
-  if (q.includes('garden') && (q.includes('how') || q.includes('what') || q.includes('where') || q.includes('my')))
-    return `Your Garden (🌿) is home to all your plants! After identifying a plant, tap "Add to Garden" and it'll appear here with health tracking, watering reminders, and a day counter. Tap any plant to open a 1-on-1 chat with me about its specific needs.`
-
-  // Watering
-  if (q.includes('water'))
-    return `Watering depends on the plant, soil, and weather! As a general rule: most veggies like 1-1.5 inches per week, and it's better to water deeply less often than a little every day. Add a plant to your garden and I can give you specific watering advice tailored to your zone and conditions. 💧`
-
-  // Soil
-  if (q.includes('soil') || q.includes('dirt') || q.includes('compost'))
-    return `Good soil is the foundation of a great garden! 🌍 For raised beds, Mel's Mix is hard to beat: 1/3 compost, 1/3 peat moss (or coco coir), 1/3 vermiculite. For in-ground beds, work in 2-3 inches of compost each season. The Garden Planner's Structure Builder will calculate exact soil quantities for your beds!`
-
-  // Pests
-  if (q.includes('pest') || q.includes('bug') || q.includes('insect') || q.includes('aphid'))
-    return `Pest management starts with prevention! 🐛 Companion planting is your first line of defense — marigolds, basil, and nasturtiums all deter common pests. Neem oil spray works for most soft-bodied insects. For specific pest issues, add the affected plant to your garden and chat with me about it — I can diagnose from photos too!`
-
-  // How the app works (general)
-  if (q.includes('how') && (q.includes('app') || q.includes('work') || q.includes('use') || q.includes('sprout')))
-    return `SPROUT has everything you need! 🌱 **Identify** plants with photos, track them in your **Garden**, get AI advice via **Chat**, find **Companion** plant combos, design layouts in the **Planner**, check daily tasks in **Today**, and earn XP in **Rewards**. The best way to start: identify your first plant with a photo! Tap 🔍 in the sidebar.`
-
-  // Fallback — more conversational
-  return `That's a great question! 🌿 I can help with plant care, what to grow in your zone, companion planting, using any feature in the app, or building garden structures. You can also add a plant to your garden (via 🔍 Identify) and I'll give you super specific care advice for it. What would you like to explore?`
 }

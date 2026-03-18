@@ -1,5 +1,5 @@
 // lib/api/index.ts
-// Typed wrappers around the three SPROUT Edge Functions
+// Typed wrappers around the SPROUT Edge Functions
 // Uses Supabase client's functions.invoke() for proper auth handling
 
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -12,11 +12,25 @@ async function callEdgeFunction(
   const { data, error } = await supabase.functions.invoke(fnName, {
     body,
   })
-  if (error) throw new Error(error.message ?? 'Edge function error')
+  if (error) {
+    // Extract real error message from the response
+    let msg = 'Edge function error'
+    try {
+      if (error.context && typeof error.context.json === 'function') {
+        const errBody = await error.context.json()
+        msg = errBody?.error ?? error.message ?? msg
+      } else {
+        msg = error.message ?? msg
+      }
+    } catch {
+      msg = error.message ?? msg
+    }
+    throw new Error(msg)
+  }
   return data
 }
 
-// ── Plant Chat ──────────────────────────────────────────────────────
+// ── Plant Chat (plant-specific) ─────────────────────────────────────
 export async function sendChatMessage(
   supabase: SupabaseClient,
   plantId: string,
@@ -27,6 +41,24 @@ export async function sendChatMessage(
     plant_id: plantId,
     message,
     photo_url: photoUrl,
+  })
+}
+
+// ── General Chat (no plant required) ────────────────────────────────
+export interface GeneralChatResult {
+  message: string
+  xp_earned: number
+  added_plant: { id: string; common_name: string; emoji: string } | null
+}
+
+export async function sendGeneralChat(
+  supabase: SupabaseClient,
+  message: string,
+  history?: { role: string; content: string }[]
+): Promise<GeneralChatResult> {
+  return callEdgeFunction(supabase, 'sprout-general-chat', {
+    message,
+    history,
   })
 }
 
