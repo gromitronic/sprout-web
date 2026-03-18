@@ -2,6 +2,7 @@
 // Typed wrappers around the three SPROUT Edge Functions
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 async function callEdgeFunction(
   fnName: string,
@@ -13,6 +14,7 @@ async function callEdgeFunction(
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
+      'apikey': SUPABASE_ANON_KEY,
     },
     body: JSON.stringify(body),
   })
