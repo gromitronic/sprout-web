@@ -59,7 +59,7 @@ export default function LoginPage() {
             Sign in to start growing. Your garden syncs across all your devices.
           </p>
 
-          {/* Sign in with Apple */}
+          {/* Sign in with Apple — disabled until Apple Developer setup is complete
           <button
             onClick={() => signIn('apple')}
             disabled={loading !== null}
@@ -74,12 +74,13 @@ export default function LoginPage() {
             )}
             Continue with Apple
           </button>
+          */}
 
           {/* Sign in with Google */}
           <button
             onClick={() => signIn('google')}
             disabled={loading !== null}
-            className="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-green-700/40 text-white font-body font-semibold text-base py-4 px-6 rounded-xl transition-all duration-200 hover:-translate-y-px"
+            className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-60 text-black font-body font-bold text-base py-4 px-6 rounded-xl transition-all duration-200 hover:-translate-y-px"
           >
             {loading === 'google' ? (
               <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

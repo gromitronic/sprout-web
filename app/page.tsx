@@ -417,7 +417,9 @@ export default function LandingPage() {
       </section>
 
       {/* ── EXPLODED GARDEN SCROLL SECTION ──────────────────────── */}
+      {/* Disabled until exploded view video is ready
       <ExplodedGarden />
+      */}
 
       {/* ── FEATURES ────────────────────────────────────────────── */}
       <section id="features" className="py-32 px-6 bg-cream">
@@ -440,20 +442,18 @@ export default function LandingPage() {
                 {/* Grain overlay */}
                 <div className="absolute inset-0 bg-grain opacity-50 rounded-3xl pointer-events-none" />
 
-                <div className="relative z-10 flex flex-col h-full">
-                  <span className="text-3xl mb-4">{f.emoji}</span>
+                <div className="relative z-10 h-full">
+                  <span className="text-3xl mb-4 block">{f.emoji}</span>
+                  {/* Mascot floated right so text wraps around it */}
+                  <div className="float-right ml-4 mb-2 opacity-40 group-hover:opacity-60 transition-opacity duration-300">
+                    <Image src={f.mascot} alt="" width={120} height={120} />
+                  </div>
                   <h3 className="font-display text-white text-2xl font-black mb-3 tracking-tight">
                     {f.title}
                   </h3>
-                  <p className="text-white/60 font-body text-base leading-relaxed flex-1">
+                  <p className="text-white/60 font-body text-base leading-relaxed">
                     {f.desc}
                   </p>
-
-                  {/* Mascot in corner */}
-                  <div className="absolute -bottom-4 -right-4 opacity-30 group-hover:opacity-50 transition-opacity duration-300">
-                    <Image src={f.mascot} alt="" width={120} height={120}
-                      className="drop-shadow-xl" />
-                  </div>
                 </div>
               </div>
             ))}
