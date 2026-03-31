@@ -76,6 +76,8 @@ export default function IdentifyPage() {
     if (!compressed) return
     setScanning(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { toast.error('Please sign in'); return }
       const data = await identifyPlant(supabase, compressed.base64, compressed.mediaType as 'image/jpeg')
       setResult(data)
       if (data.identified) toast.success(`🌱 +${data.xp_earned} XP! ${data.common_name} identified!`)

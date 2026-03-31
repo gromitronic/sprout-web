@@ -3,12 +3,12 @@ import { Toaster } from 'react-hot-toast'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'SPROUT — AI Gardening by Gromitron',
-  description: 'Turn any gardener into a plant expert. AI-powered plant identification, zone-matched care, and companion planting — all in one place.',
-  keywords: ['gardening app', 'plant identification', 'AI gardening', 'USDA zones', 'companion planting'],
+  title: 'SPROUT — Your Whole Farm, Powered by AI',
+  description: 'From backyard gardens to full homesteads — AI-powered care for your plants, animals, fish, and the connections between them. Zone-smart. Totally yours.',
+  keywords: ['homestead app', 'gardening app', 'backyard chickens', 'aquaponics', 'AI farming', 'plant identification', 'USDA zones', 'companion planting', 'backyard animals'],
   openGraph: {
-    title: 'SPROUT — AI Gardening by Gromitron',
-    description: 'Grow smarter. Grow anywhere.',
+    title: 'SPROUT — Your Whole Farm, Powered by AI',
+    description: 'Plants. Animals. Fish. All connected. All smart.',
   },
 }
 

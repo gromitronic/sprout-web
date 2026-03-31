@@ -373,12 +373,12 @@ export default function LandingPage() {
           <div className="flex items-center gap-2 bg-green-800/40 border border-green-600/30 rounded-full px-4 py-1.5 mb-6">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse-dot" />
             <span className="text-green-400 text-xs font-body font-bold tracking-widest uppercase">
-              Now in Beta · Free to Start
+              Plants · Animals · Fish · All Connected
             </span>
           </div>
 
           <h1 className="font-display text-5xl md:text-7xl font-black text-white leading-[1.02] tracking-tight mb-6">
-            Your garden,<br />
+            Your whole farm,<br />
             <em className="text-green-400 not-italic">powered by AI.</em>
           </h1>
 
@@ -403,7 +403,7 @@ export default function LandingPage() {
 
           {/* Social proof */}
           <p className="mt-8 text-green-600 text-sm font-body">
-            Available on iPhone · iPad · Mac · Web &nbsp;·&nbsp; Free tier, no credit card required
+            🌱 Plants · 🐓 Animals · 🐟 Fish · All in one ecosystem &nbsp;·&nbsp; Free tier, no credit card required
           </p>
         </div>
 
@@ -417,9 +417,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── EXPLODED GARDEN SCROLL SECTION ──────────────────────── */}
-      {/* Disabled until exploded view video is ready
       <ExplodedGarden />
-      */}
 
       {/* ── FEATURES ────────────────────────────────────────────── */}
       <section id="features" className="py-32 px-6 bg-cream">
@@ -442,18 +440,20 @@ export default function LandingPage() {
                 {/* Grain overlay */}
                 <div className="absolute inset-0 bg-grain opacity-50 rounded-3xl pointer-events-none" />
 
-                <div className="relative z-10 h-full">
-                  <span className="text-3xl mb-4 block">{f.emoji}</span>
-                  {/* Mascot floated right so text wraps around it */}
-                  <div className="float-right ml-4 mb-2 opacity-40 group-hover:opacity-60 transition-opacity duration-300">
-                    <Image src={f.mascot} alt="" width={120} height={120} />
-                  </div>
+                <div className="relative z-10 flex flex-col h-full">
+                  <span className="text-3xl mb-4">{f.emoji}</span>
                   <h3 className="font-display text-white text-2xl font-black mb-3 tracking-tight">
                     {f.title}
                   </h3>
-                  <p className="text-white/60 font-body text-base leading-relaxed">
+                  <p className="text-white/60 font-body text-base leading-relaxed flex-1">
                     {f.desc}
                   </p>
+
+                  {/* Mascot in corner */}
+                  <div className="absolute -bottom-4 -right-4 opacity-30 group-hover:opacity-50 transition-opacity duration-300">
+                    <Image src={f.mascot} alt="" width={120} height={120}
+                      className="drop-shadow-xl" />
+                  </div>
                 </div>
               </div>
             ))}
@@ -637,7 +637,7 @@ export default function LandingPage() {
             Plant your first seed 🌱
           </Link>
           <p className="mt-6 text-green-500 text-sm font-body">
-            Available on iPhone · iPad · Mac · Web
+            🌱 Plants · 🐓 Animals · 🐟 Fish · All in one ecosystem
           </p>
         </div>
       </section>
@@ -651,7 +651,7 @@ export default function LandingPage() {
           </span>
         </div>
         <p className="text-green-700 text-sm font-body">
-          Grow smarter. Grow anywhere. &nbsp;·&nbsp;
+          From a backyard garden to a full homestead — Sprout knows it all. &nbsp;·&nbsp;
           <a href="https://gromitron.com" className="hover:text-green-500 transition-colors">gromitron.com</a>
         </p>
         <p className="text-green-800 text-xs font-body mt-3">
