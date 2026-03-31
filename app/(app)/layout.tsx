@@ -8,14 +8,44 @@ import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 
 const NAV = [
-  { href: '/identify',   icon: '🔍', label: 'Identify'   },
-  { href: '/garden',     icon: '🌿', label: 'Garden'     },
-  { href: '/companions', icon: '🤝', label: 'Companions' },
-  { href: '/chat',       icon: '💬', label: 'Chat'       },
-  { href: '/today',      icon: '☀️', label: 'Today'      },
-  { href: '/planner',    icon: '📐', label: 'Planner'    },
-  { href: '/rewards',    icon: '🏆', label: 'Rewards'    },
+  { href: '/garden',     icon: '🌿', label: 'Plants'    },
+  { href: '/animals',    icon: '🐾', label: 'Animals'   },
+  { href: '/identify',   icon: '🔍', label: 'Identify'  },
+  { href: '/today',      icon: '☀️', label: 'Today'     },
+  { href: '/ecosystem',  icon: '🔄', label: 'Ecosystem' },
+  { href: '/companions', icon: '🤝', label: 'Companions'},
+  { href: '/planner',    icon: '📐', label: 'Planner'   },
+  { href: '/rewards',    icon: '🏆', label: 'Rewards'   },
 ]
+
+function QuickAddButton() {
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="relative">
+      {open && (
+        <div className="absolute bottom-14 right-0 bg-green-950 border border-green-800/50 rounded-2xl p-3 shadow-sprout-xl flex flex-col gap-2 w-44">
+          {[
+            { emoji: '🌿', label: 'Add a Plant',  href: '/garden'         },
+            { emoji: '🐾', label: 'Add an Animal', href: '/animals'        },
+            { emoji: '🐟', label: 'Add Fish',      href: '/animals?type=fish' },
+          ].map(item => (
+            <button key={item.href}
+              onClick={() => { router.push(item.href); setOpen(false) }}
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left hover:bg-green-800/60 transition-colors">
+              <span className="text-xl">{item.emoji}</span>
+              <span className="text-green-200 text-sm font-body font-semibold">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      <button onClick={() => setOpen(o => !o)}
+        className="w-12 h-12 bg-green-500 hover:bg-green-400 text-white text-2xl font-bold rounded-full shadow-sprout-lg flex items-center justify-center transition-all hover:scale-110">
+        {open ? '×' : '+'}
+      </button>
+    </div>
+  )
+}
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -66,7 +96,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Image src="/mascots/sproutsmiling.png" alt="Sprout" width={32} height={32} className="rounded-lg group-hover:animate-bob" />
             <div>
               <span className="font-display text-white font-black text-lg tracking-tight leading-none block">SPROUT</span>
-              <span className="font-body text-green-600 text-[10px] font-semibold tracking-widest uppercase">by Gromitron</span>
+              <span className="font-body text-green-600 text-[10px] font-semibold tracking-widest uppercase">plants · animals · fish</span>
             </div>
           </Link>
         </div>
@@ -77,6 +107,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <span className="text-green-400 text-xs font-body font-semibold truncate">Zone {profile.usda_zone}</span>
           </div>
         )}
+
+        <div className="px-3 py-2">
+          <QuickAddButton />
+        </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
           {NAV.map(({ href, icon, label }) => {
@@ -130,6 +164,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <span className="text-amber-400 text-sm font-body font-bold">⚡ {xp.toLocaleString()}</span>
           </div>
         </header>
+
+        {/* Quick Add FAB — mobile */}
+        <div className="md:hidden fixed bottom-20 right-4 z-40">
+          <QuickAddButton />
+        </div>
 
         <main className="flex-1 overflow-y-auto">{children}</main>
 

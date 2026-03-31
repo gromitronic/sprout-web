@@ -1,270 +1,36 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-
-// ─── Exploded Garden Scroll Component ───────────────────────────────
-function ExplodedGarden() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [progress, setProgress] = useState(0) // 0 → 1
-
-  useEffect(() => {
-    const onScroll = () => {
-      if (!containerRef.current) return
-      const rect = containerRef.current.getBoundingClientRect()
-      const total = containerRef.current.offsetHeight - window.innerHeight
-      const scrolled = -rect.top
-      setProgress(Math.max(0, Math.min(1, scrolled / total)))
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  // Each layer moves by progress * its speed (px)
-  const layers = [
-    // { id, label, emoji, speed (negative = up, positive = down), color, zIndex }
-    { id: 'sky',    label: 'Zone-Aware Weather',    emoji: '☀️', speed: -380, bg: 'from-sky-300 to-blue-200',           z: 7  },
-    { id: 'canopy', label: 'AI Plant Identification',emoji: '🔍', speed: -260, bg: 'from-green-600 to-green-700',        z: 6  },
-    { id: 'stems',  label: 'Per-Plant AI Chat',      emoji: '💬', speed: -150, bg: 'from-green-700 to-green-800',        z: 5  },
-    { id: 'mulch',  label: 'Daily Care Schedule',    emoji: '📋', speed: -50,  bg: 'from-amber-800 to-amber-900',        z: 4  },
-    { id: 'soil',   label: 'Companion Planting',     emoji: '🤝', speed:  50,  bg: 'from-yellow-900 to-amber-950',       z: 3  },
-    { id: 'roots',  label: 'Garden Planner',         emoji: '📐', speed:  160, bg: 'from-stone-800 to-stone-900',        z: 2  },
-    { id: 'earth',  label: 'Season Archive',         emoji: '📚', speed:  280, bg: 'from-stone-950 to-neutral-950',      z: 1  },
-  ]
-
-  // Layer heights and vertical positions (centered around 0)
-  const layerH = 72  // px each
-  const layerW = 680 // max-width px
-  const totalH = layers.length * layerH
-  const startY  = -totalH / 2
-
-  // Opacity of labels: fade in after 30% scroll
-  const labelOpacity = Math.max(0, (progress - 0.25) / 0.4)
-
-  // Sprout mascot emerges at 40% scroll
-  const mascotScale = 0.4 + progress * 0.7
-  const mascotOpacity = Math.max(0, (progress - 0.3) / 0.4)
-
-  return (
-    // Tall scroll container — 500vh gives plenty of scroll room
-    <div ref={containerRef} className="relative" style={{ height: '500vh' }}>
-      {/* Sticky viewport — stays fixed while user scrolls through container */}
-      <div className="sticky top-0 h-screen overflow-hidden bg-green-950 flex flex-col items-center justify-center">
-
-        {/* Section heading */}
-        <div
-          className="absolute top-8 left-0 right-0 text-center z-20 transition-all duration-300"
-          style={{ opacity: 1 - progress * 2 }}
-        >
-          <p className="text-green-400 text-sm font-body font-semibold tracking-widest uppercase mb-2">
-            Everything your garden needs
-          </p>
-          <h2 className="font-display text-white text-4xl md:text-5xl font-black tracking-tight">
-            Layers of intelligence,<br />
-            <em className="text-green-400 not-italic">rooted in your zone</em>
-          </h2>
-          <p className="text-green-500 mt-3 text-base font-body">
-            Scroll to explore ↓
-          </p>
-        </div>
-
-        {/* The exploded layers */}
-        <div className="relative flex items-center justify-center" style={{ width: layerW, height: totalH + 200 }}>
-
-          {layers.map((layer, i) => {
-            const baseY = startY + i * layerH
-            const translateY = baseY + (progress * layer.speed)
-
-            return (
-              <div
-                key={layer.id}
-                className="layer-item absolute left-0 right-0"
-                style={{
-                  top: '50%',
-                  transform: `translateY(calc(-50% + ${translateY}px))`,
-                  zIndex: layer.z,
-                  height: layerH,
-                }}
-              >
-                {/* Layer band */}
-                <div
-                  className={`w-full h-full bg-gradient-to-b ${layer.bg} rounded-sm flex items-center px-6 relative overflow-hidden`}
-                  style={{
-                    boxShadow: progress > 0.1 ? '0 4px 24px rgba(0,0,0,0.4)' : 'none',
-                  }}
-                >
-                  {/* Texture lines suggesting soil strata */}
-                  {[...Array(3)].map((_, j) => (
-                    <div
-                      key={j}
-                      className="absolute inset-x-0 border-t border-white/5"
-                      style={{ top: `${25 + j * 20}%` }}
-                    />
-                  ))}
-
-                  {/* Decorative elements per layer */}
-                  {layer.id === 'sky' && (
-                    <div className="absolute inset-0 overflow-hidden">
-                      {['☁️','☁️','☁️'].map((c, j) => (
-                        <span key={j} className="absolute text-2xl opacity-40"
-                          style={{ left: `${15 + j * 30}%`, top: '20%' }}>{c}</span>
-                      ))}
-                      <span className="absolute right-8 top-2 text-3xl">☀️</span>
-                    </div>
-                  )}
-                  {layer.id === 'canopy' && (
-                    <div className="absolute inset-0 flex items-end px-4 pb-1 gap-2">
-                      {['🌿','🌱','🍃','🌿','🌱','🍃','🌿'].map((e, j) => (
-                        <span key={j} className="text-xl opacity-60">{e}</span>
-                      ))}
-                    </div>
-                  )}
-                  {layer.id === 'stems' && (
-                    <div className="absolute inset-0 flex items-center px-8 gap-6 overflow-hidden">
-                      {[...Array(8)].map((_, j) => (
-                        <div key={j} className="w-1 bg-green-600/40 rounded-full" style={{ height: '60%' }} />
-                      ))}
-                    </div>
-                  )}
-                  {layer.id === 'mulch' && (
-                    <div className="absolute inset-0 flex items-center px-4 gap-1 overflow-hidden">
-                      {[...Array(20)].map((_, j) => (
-                        <div key={j} className="rounded-full bg-amber-700/30"
-                          style={{ width: 8 + Math.random() * 16, height: 8 + Math.random() * 8 }} />
-                      ))}
-                    </div>
-                  )}
-                  {layer.id === 'roots' && (
-                    <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 680 72">
-                      {[...Array(6)].map((_, j) => (
-                        <path key={j} d={`M${80 + j * 100},0 C${70 + j * 100},36 ${110 + j * 100},36 ${100 + j * 100},72`}
-                          stroke="#D4A853" fill="none" strokeWidth="2" />
-                      ))}
-                    </svg>
-                  )}
-                  {layer.id === 'earth' && (
-                    <div className="absolute inset-0 flex items-center px-6 gap-3">
-                      {['🪨','🪱','🌰','🪨','🌰','🪱','🪨'].map((e, j) => (
-                        <span key={j} className="text-lg opacity-30">{e}</span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Layer height label — left side */}
-                  <span className="relative z-10 text-white/30 text-xs font-mono font-bold uppercase tracking-widest">
-                    {layer.id}
-                  </span>
-                </div>
-
-                {/* Feature label — floats to the right as layers separate */}
-                <div
-                  className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-3 pointer-events-none"
-                  style={{
-                    opacity: labelOpacity,
-                    transform: `translateY(-50%) translateX(${labelOpacity * 110}%)`,
-                    transition: 'none',
-                    left: '105%',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <div className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
-                  <span className="text-sm font-body font-semibold text-green-300">
-                    {layer.emoji} {layer.label}
-                  </span>
-                </div>
-
-                {/* Left label */}
-                <div
-                  className="absolute top-1/2 -translate-y-1/2 flex items-center gap-3 pointer-events-none"
-                  style={{
-                    opacity: labelOpacity,
-                    transform: `translateY(-50%) translateX(${-labelOpacity * 110}%)`,
-                    transition: 'none',
-                    right: '105%',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <span className="text-xs font-mono text-green-600 font-bold">
-                    0{i + 1}
-                  </span>
-                  <div className="w-2 h-2 rounded-full bg-green-700 flex-shrink-0" />
-                </div>
-              </div>
-            )
-          })}
-
-          {/* Sprout mascot — emerges from the gap between soil layers */}
-          <div
-            className="absolute z-20 pointer-events-none"
-            style={{
-              top: '50%',
-              left: '50%',
-              transform: `translate(-50%, calc(-50% + ${progress * -30}px)) scale(${mascotScale})`,
-              opacity: mascotOpacity,
-            }}
-          >
-            <Image
-              src="/mascots/sproutthrilled.png"
-              alt="Sprout mascot emerging from the garden"
-              width={140}
-              height={140}
-              className="drop-shadow-[0_8px_32px_rgba(90,158,101,0.8)] animate-bob"
-              priority
-            />
-            {/* XP burst */}
-            {progress > 0.7 && (
-              <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-amber-400 text-green-ink text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
-                🌱 Your garden awaits!
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom CTA — appears at end of scroll */}
-        <div
-          className="absolute bottom-12 left-0 right-0 flex justify-center"
-          style={{ opacity: Math.max(0, (progress - 0.8) / 0.2) }}
-        >
-          <Link
-            href="/login"
-            className="bg-green-600 hover:bg-green-500 text-white font-display font-black text-lg px-10 py-4 rounded-full shadow-glow-green transition-all duration-300 hover:-translate-y-1"
-          >
-            Start Growing Free →
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // ─── Feature Cards ───────────────────────────────────────────────────
 const features = [
   {
     emoji: '📸',
-    title: 'Point. Shoot. Identified.',
-    desc: 'Snap any plant and our AI identifies it instantly — with zone-specific advice, companion suggestions, and a complete care profile. 97% accuracy.',
+    title: 'Identify Anything',
+    desc: 'Snap a photo of any plant, animal symptom, or fish disease. AI identifies it instantly with zone-specific advice, treatment plans, and care schedules.',
     mascot: '/mascots/sproutsearching.png',
     color: 'from-green-900 to-green-800',
   },
   {
-    emoji: '💬',
-    title: 'Your plant\'s own AI.',
-    desc: 'Every plant gets its own conversation with Sprout. Ask anything, attach a photo, get a real answer — not a generic tip sheet.',
-    mascot: '/mascots/sproutsmiling.png',
+    emoji: '🔄',
+    title: 'Ecosystem Cycles',
+    desc: 'Your chickens fertilize your garden. Your fish water feeds your plants. Your bees double your yields. SPROUT maps every connection and tells you how to close the loop.',
+    mascot: '/mascots/sproutthrilled.png',
     color: 'from-sky-900 to-sky-800',
   },
   {
-    emoji: '🤝',
-    title: 'Plants that work together.',
-    desc: 'Basil loves tomatoes. Fennel ruins them. The companion planting engine maps what grows together and what fights — all tuned to your zone.',
+    emoji: '🐾',
+    title: 'Whole Farm Care',
+    desc: 'Daily schedules for plants AND animals. Egg logs, milk tracking, harvest records, fish water quality checks — one AI companion for your whole homestead.',
     mascot: '/mascots/sproutdigging.png',
     color: 'from-earth to-amber-900',
   },
   {
     emoji: '📐',
-    title: 'Plan it. Build it. Grow it.',
-    desc: 'Design your garden layout with AI, then get a complete parts list and step-by-step instructions for raised beds, trellises, and more.',
+    title: 'Build it Right',
+    desc: 'Need a hawk-proof chicken coop? A raised bed? An aquaponics system? Get a full blueprint with materials list, predator safety features, and step-by-step build instructions.',
     mascot: '/mascots/sproutwatering.png',
     color: 'from-green-800 to-green-900',
   },
@@ -383,7 +149,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-green-400/80 text-xl md:text-2xl font-body font-light max-w-2xl leading-relaxed mb-10">
-            SPROUT turns any gardener into a plant expert — with AI that actually knows your soil, your zone, and your schedule.
+            SPROUT is your whole farm AI — plants, animals, and fish, all connected. Zone-smart advice, ecosystem cycle planning, and an AI that knows when your duck pond can fertilize your raised beds.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -416,8 +182,24 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── EXPLODED GARDEN SCROLL SECTION ──────────────────────── */}
-      <ExplodedGarden />
+      {/* ── DIVIDER ───────────────────────────────────────────────── */}
+      <section className="py-16 px-6 bg-green-950">
+        <div className="max-w-5xl mx-auto text-center">
+          <p className="text-green-500 text-sm font-body font-bold tracking-widest uppercase mb-6">
+            Everything your farm needs
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-4xl">
+            {['🌱','🥕','🍅','🌿','🐓','🦆','🐐','🐇','🐝','🐟','🪴','📐'].map((e, i) => (
+              <span key={i} className="opacity-70 hover:opacity-100 transition-opacity hover:scale-125 transform duration-200 cursor-default">
+                {e}
+              </span>
+            ))}
+          </div>
+          <p className="text-green-700 font-body text-sm mt-6">
+            Plants · Animals · Fish · All connected in one ecosystem
+          </p>
+        </div>
+      </section>
 
       {/* ── FEATURES ────────────────────────────────────────────── */}
       <section id="features" className="py-32 px-6 bg-cream">
@@ -475,20 +257,20 @@ export default function LandingPage() {
             {[
               {
                 step: '01',
-                title: 'Set your zone',
-                desc: 'Tell us where your garden is (not where you live — they can be different). We detect your USDA zone automatically.',
+                title: 'Tell us about your space',
+                desc: 'Your zone, garden size, and goals — food, animals, fish, or all three. We build your personalized farm profile in under 60 seconds.',
                 mascot: '/mascots/sproutbase.png',
               },
               {
                 step: '02',
-                title: 'Scan a plant',
-                desc: 'Point your camera. SPROUT identifies the plant, assesses your zone fit, and suggests the perfect companion plants.',
+                title: 'Add your plants and animals',
+                desc: 'Scan plants, log your flock, add your pond. SPROUT tracks everything and starts connecting the dots between each part of your farm.',
                 mascot: '/mascots/sproutsearching.png',
               },
               {
                 step: '03',
-                title: 'Start the conversation',
-                desc: 'Every plant gets its own AI chat. Ask anything — watering, pests, harvest timing. Sprout knows this plant, in your zone, today.',
+                title: 'Let the ecosystem work',
+                desc: 'Sprout shows how each piece supports the others — cutting costs, closing loops, and building a self-sustaining homestead you can be proud of.',
                 mascot: '/mascots/sproutsmiling.png',
               },
             ].map((s) => (
@@ -539,7 +321,7 @@ export default function LandingPage() {
                 Earn XP for every scan, chat, and harvest. Level up from Seedling to Legendary Gardener. Unlock badges tied to real milestones — not participation trophies.
               </p>
               <div className="flex flex-wrap gap-3">
-                {['🌱 First Sprout', '🔥 14-Day Streak', '🍅 First Harvest', '🤝 Guild Master', '📐 Master Planner'].map(b => (
+                {['🌱 First Sprout', '🔥 14-Day Streak', '🍅 First Harvest', '🤝 Guild Master', '📐 Master Planner', '🐟 Aquaponics Pro', '🔄 Full Ecosystem', '♻️ Zero Waste Farm'].map(b => (
                   <span key={b} className="bg-green-800/60 border border-green-700/40 text-green-300 text-xs font-body font-semibold px-3 py-1.5 rounded-full">
                     {b}
                   </span>
@@ -624,11 +406,11 @@ export default function LandingPage() {
             className="mx-auto mb-8 drop-shadow-xl animate-bob"
           />
           <h2 className="font-display text-5xl md:text-6xl font-black text-green-ink tracking-tight mb-6">
-            Ready to grow<br />
-            <em className="text-green-700 not-italic">something great?</em>
+            Ready to build<br />
+            <em className="text-green-700 not-italic">your whole farm?</em>
           </h2>
           <p className="text-green-700 font-body text-xl mb-10 leading-relaxed">
-            Join the beta. Free forever for your first 3 plants.<br />No credit card. No catch. Just better gardening.
+            Add your plants, animals, and fish. Let Sprout show you how they all work together — for free.
           </p>
           <Link
             href="/login"

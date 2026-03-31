@@ -34,7 +34,9 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/companions') ||
     pathname.startsWith('/planner') ||
     pathname.startsWith('/rewards') ||
-    pathname.startsWith('/onboarding')
+    pathname.startsWith('/onboarding') ||
+    pathname.startsWith('/ecosystem') ||
+    pathname.startsWith('/animals')
 
   if (isAppRoute && !user) {
     const url = request.nextUrl.clone()
