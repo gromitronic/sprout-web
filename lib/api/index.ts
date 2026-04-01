@@ -9,8 +9,17 @@ async function callEdgeFunction(
   fnName: string,
   body: Record<string, unknown>
 ) {
+  // @supabase/ssr stores tokens in cookies but functions.invoke() doesn't
+  // always read them back to set the Authorization header — pass it explicitly
+  const { data: { session } } = await supabase.auth.getSession()
+  const headers: Record<string, string> = {}
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`
+  }
+
   const { data, error } = await supabase.functions.invoke(fnName, {
     body,
+    headers,
   })
   if (error) {
     // Extract real error message from the FunctionsHttpError response
