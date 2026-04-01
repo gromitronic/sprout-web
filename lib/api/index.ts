@@ -10,7 +10,9 @@ async function callEdgeFunction(
   body: Record<string, unknown>
 ) {
   // @supabase/ssr stores tokens in cookies but functions.invoke() doesn't
-  // always read them back to set the Authorization header — pass it explicitly
+  // always read them back to set the Authorization header — pass it explicitly.
+  // Use getUser() first to force a token refresh if expired, then read session.
+  await supabase.auth.getUser()
   const { data: { session } } = await supabase.auth.getSession()
   const headers: Record<string, string> = {}
   if (session?.access_token) {
