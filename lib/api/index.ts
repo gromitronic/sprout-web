@@ -13,10 +13,14 @@ async function callEdgeFunction(
     body,
   })
   if (error) {
-    // Extract real error message from the response
+    // Extract real error message from the FunctionsHttpError response
     let msg = 'Edge function error'
     try {
-      if (error.context && typeof error.context.json === 'function') {
+      // functions-js v2 puts the Response in error.context
+      if (error.context instanceof Response) {
+        const errBody = await error.context.json()
+        msg = errBody?.error ?? errBody?.message ?? error.message ?? msg
+      } else if (error.context && typeof error.context.json === 'function') {
         const errBody = await error.context.json()
         msg = errBody?.error ?? error.message ?? msg
       } else {
@@ -25,6 +29,13 @@ async function callEdgeFunction(
     } catch {
       msg = error.message ?? msg
     }
+    console.error(`[SPROUT] ${fnName} failed:`, msg)
+    throw new Error(msg)
+  }
+  // functions.invoke can also return error info in data for non-2xx
+  if (data && typeof data === 'object' && 'error' in data && !('message' in data)) {
+    const msg = (data as any).error ?? 'Unknown error'
+    console.error(`[SPROUT] ${fnName} returned error:`, msg)
     throw new Error(msg)
   }
   return data
