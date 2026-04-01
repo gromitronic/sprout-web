@@ -180,7 +180,7 @@ export default function EcosystemPage() {
                           ))}
                         </div>
                       </div>
-                      <span className="text-amber-500 text-xs font-body font-bold flex-shrink-0">+{cycle.xp} XP</span>
+                      <span className="text-amber-700 text-xs font-body font-bold flex-shrink-0">+{cycle.xp} XP</span>
                     </div>
                     <p className="text-green-700 font-body text-sm leading-relaxed mb-3">{cycle.description}</p>
                     <div className="bg-green-50 rounded-xl px-4 py-2.5">
@@ -205,12 +205,12 @@ export default function EcosystemPage() {
                         <h3 className="font-display text-green-ink font-black text-base">{cycle.title}</h3>
                         <div className="flex flex-wrap gap-1 mt-1 mb-2">
                           {cycle.nodes.map((n: string) => (
-                            <span key={n} className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-body font-semibold capitalize">{n}</span>
+                            <span key={n} className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-body font-semibold capitalize">{n}</span>
                           ))}
                         </div>
                         <p className="text-green-600 text-xs font-body leading-relaxed">{cycle.benefit}</p>
                       </div>
-                      <span className="text-amber-500 text-xs font-body font-bold flex-shrink-0">+{cycle.xp} XP</span>
+                      <span className="text-amber-700 text-xs font-body font-bold flex-shrink-0">+{cycle.xp} XP</span>
                     </div>
                   </div>
                 ))}

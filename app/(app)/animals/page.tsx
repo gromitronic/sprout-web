@@ -543,7 +543,7 @@ function SynergyPanel({ animal }: { animal: Animal }) {
 
       {canGrow.length > 0 && (
         <div>
-          <p className="text-amber-500 text-xs font-body font-bold uppercase tracking-wider mb-2">
+          <p className="text-amber-800 text-xs font-body font-bold uppercase tracking-wider mb-2">
             {isFish ? '💧 Best Plants for Your Fish Water' : '💡 Plant These to Cut Feed Costs'}
           </p>
           <div className="space-y-2">
@@ -551,12 +551,12 @@ function SynergyPanel({ animal }: { animal: Animal }) {
               <div key={i} className="bg-amber-900/20 border border-amber-800/20 rounded-xl p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm">{typeIcon[s.synergy_type] ?? '🌿'}</span>
-                  <span className="text-amber-200 text-xs font-body font-bold">{s.plant_name}</span>
+                  <span className="text-amber-900 text-xs font-body font-bold">{s.plant_name}</span>
                   {s.sqft_per_animal && s.sqft_per_animal > 0 && (
-                    <span className="ml-auto text-amber-700 text-[10px] font-body">{s.sqft_per_animal * animal.count} sq ft</span>
+                    <span className="ml-auto text-amber-900 text-[10px] font-body">{s.sqft_per_animal * animal.count} sq ft</span>
                   )}
                 </div>
-                <p className="text-amber-600 text-[11px] font-body leading-relaxed">{s.benefit}</p>
+                <p className="text-amber-950 text-[11px] font-body leading-relaxed">{s.benefit}</p>
               </div>
             ))}
           </div>
@@ -726,7 +726,7 @@ export default function AnimalsPage() {
                   <button onClick={() => setLogTarget(animal)}
                     className="flex flex-col items-center gap-1 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 transition-colors">
                     <span className="text-lg">{isFish ? '💧' : '📋'}</span>
-                    <span className="text-amber-700 text-[10px] font-body font-semibold">{isFish ? 'Log Water' : 'Log'}</span>
+                    <span className="text-amber-900 text-[10px] font-body font-semibold">{isFish ? 'Log Water' : 'Log'}</span>
                   </button>
                   <button onClick={() => setSynergyTarget(synergyTarget?.id === animal.id ? null : animal)}
                     className={`flex flex-col items-center gap-1 py-2 rounded-xl transition-colors

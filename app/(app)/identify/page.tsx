@@ -201,8 +201,8 @@ export default function IdentifyPage() {
           ) : !result.identified ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-amber-900/10 rounded-2xl border border-amber-800/30">
               <span className="text-4xl mb-3">🤔</span>
-              <p className="text-amber-300 font-body font-semibold mb-2">Could not identify</p>
-              <p className="text-amber-600 text-sm font-body">Try a clearer photo with better lighting or a closer shot of the leaves</p>
+              <p className="text-amber-800 font-body font-semibold mb-2">Could not identify</p>
+              <p className="text-amber-900 text-sm font-body">Try a clearer photo with better lighting or a closer shot of the leaves</p>
             </div>
           ) : (
             <div className="bg-white border border-green-100 rounded-2xl shadow-sprout-md overflow-hidden">
