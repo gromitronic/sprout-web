@@ -10,13 +10,14 @@ async function callEdgeFunction(
   body: Record<string, unknown>
 ) {
   // @supabase/ssr stores tokens in cookies but functions.invoke() doesn't
-  // always read them back to set the Authorization header — pass it explicitly.
-  // Use getUser() first to force a token refresh if expired, then read session.
-  await supabase.auth.getUser()
-  const { data: { session } } = await supabase.auth.getSession()
-  const headers: Record<string, string> = {}
-  if (session?.access_token) {
-    headers['Authorization'] = `Bearer ${session.access_token}`
+  // read them back to set the Authorization header. Explicitly refresh the
+  // session to guarantee a valid JWT, then pass it in headers.
+  const { data: { session }, error: refreshError } = await supabase.auth.refreshSession()
+  if (refreshError || !session) {
+    throw new Error('Session expired — please sign in again')
+  }
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${session.access_token}`,
   }
 
   const { data, error } = await supabase.functions.invoke(fnName, {
