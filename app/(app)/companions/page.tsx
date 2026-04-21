@@ -16,7 +16,7 @@ export default function CompanionsPage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
-      supabase.from('plants').select('common_name, emoji').eq('user_id', user.id).eq('is_archived', false)
+      supabase.from('sprout_plants').select('common_name, emoji').eq('user_id', user.id).eq('is_archived', false)
         .then(({ data }) => setMyPlants(data ?? []))
     })
   }, [])
@@ -24,7 +24,7 @@ export default function CompanionsPage() {
   async function lookup(name: string) {
     if (!name.trim()) return
     setLoading(true)
-    const { data } = await supabase.from('companion_catalogue')
+    const { data } = await supabase.from('sprout_companion_catalogue')
       .select('*')
       .or(`plant_a.ilike.%${name}%,plant_b.ilike.%${name}%`)
       .limit(20)

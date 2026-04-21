@@ -63,7 +63,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       if (!user) { router.push('/login'); return }
       setUser(user)
       supabase
-        .from('user_dashboard')
+        .from('sprout_user_dashboard')
         .select('display_name, usda_zone, xp_total, level, streak_current')
         .eq('user_id', user.id)
         .single()

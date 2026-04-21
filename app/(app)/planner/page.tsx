@@ -160,9 +160,9 @@ export default function PlannerPage() {
       if (!user) return
 
       const [{ data: plants }, { data: builds }] = await Promise.all([
-        supabase.from('plants').select('id, common_name, emoji, category, health_status')
+        supabase.from('sprout_plants').select('id, common_name, emoji, category, health_status')
           .eq('user_id', user.id).eq('is_archived', false),
-        supabase.from('garden_builds').select('*').eq('user_id', user.id)
+        supabase.from('sprout_garden_builds').select('*').eq('user_id', user.id)
           .order('updated_at', { ascending: false }).limit(1),
       ])
 
@@ -302,17 +302,17 @@ export default function PlannerPage() {
     if (!user) { setSaving(false); return }
 
     if (buildId) {
-      await supabase.from('garden_builds').update({
+      await supabase.from('sprout_garden_builds').update({
         name: gardenName, width_ft: gridW, height_ft: gridH, grid_data: placed,
       }).eq('id', buildId)
     } else {
-      const { data } = await supabase.from('garden_builds').insert({
+      const { data } = await supabase.from('sprout_garden_builds').insert({
         user_id: user.id, name: gardenName, width_ft: gridW,
         height_ft: gridH, grid_data: placed,
       }).select('id').single()
       if (data) {
         setBuildId(data.id)
-        await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: 30, p_multiplier: false })
+        await supabase.rpc('sprout_award_xp', { p_user_id: user.id, p_amount: 30, p_multiplier: false })
       }
     }
     setSaving(false)

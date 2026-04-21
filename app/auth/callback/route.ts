@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('sprout_profiles')
           .select('usda_zone')
           .eq('id', user.id)
           .single()

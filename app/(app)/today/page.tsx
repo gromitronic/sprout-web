@@ -127,9 +127,9 @@ export default function TodayPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       const [{ data: plants }, { data: dash }, { data: animalData }] = await Promise.all([
-        supabase.from('plant_summary').select('id, common_name, emoji, health_status, day_count, water_freq_days').eq('user_id', user.id).eq('is_archived', false),
-        supabase.from('user_dashboard').select('streak_current, usda_zone').eq('user_id', user.id).single(),
-        supabase.from('animals').select('id, species, name, emoji, count, health_status, produce_type, housing_type').eq('user_id', user.id).eq('is_archived', false),
+        supabase.from('sprout_plant_summary').select('id, common_name, emoji, health_status, day_count, water_freq_days').eq('user_id', user.id).eq('is_archived', false),
+        supabase.from('sprout_user_dashboard').select('streak_current, usda_zone').eq('user_id', user.id).single(),
+        supabase.from('sprout_animals').select('id, species, name, emoji, count, health_status, produce_type, housing_type').eq('user_id', user.id).eq('is_archived', false),
       ])
       setTasks(generateTasks(plants ?? []))
       setAnimalTasks(generateAnimalTasks(animalData ?? []))
@@ -144,9 +144,9 @@ export default function TodayPage() {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, done: true } : t))
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: xp, p_multiplier: false })
-    await supabase.rpc('update_streak', { p_user_id: user.id })
-    await supabase.from('care_logs').insert({ user_id: user.id, plant_id: plantId, action: 'task_complete', xp_earned: xp })
+    await supabase.rpc('sprout_award_xp', { p_user_id: user.id, p_amount: xp, p_multiplier: false })
+    await supabase.rpc('sprout_update_streak', { p_user_id: user.id })
+    await supabase.from('sprout_care_logs').insert({ user_id: user.id, plant_id: plantId, action: 'task_complete', xp_earned: xp })
     toast.success(`+${xp} XP! 🌱`)
   }
 

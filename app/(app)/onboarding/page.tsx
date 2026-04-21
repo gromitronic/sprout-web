@@ -77,7 +77,7 @@ export default function OnboardingPage() {
       '10b': 'Tropical · Avg low 35 to 40°F',
     }
 
-    const { error } = await supabase.from('profiles').update({
+    const { error } = await supabase.from('sprout_profiles').update({
       garden_lat: zoneData.lat,
       garden_lng: zoneData.lng,
       garden_city: zoneData.city,
@@ -90,7 +90,7 @@ export default function OnboardingPage() {
     if (error) { toast.error('Error saving — try again'); setLoading(false); return }
 
     // Award onboarding bonus XP
-    await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: 50, p_multiplier: false })
+    await supabase.rpc('sprout_award_xp', { p_user_id: user.id, p_amount: 50, p_multiplier: false })
     toast.success('🌱 +50 XP! Welcome to SPROUT!')
     router.push('/garden')
   }

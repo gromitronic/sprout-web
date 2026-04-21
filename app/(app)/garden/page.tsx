@@ -33,8 +33,8 @@ export default function GardenPage() {
     if (!user) return
 
     const [{ data: plantsData }, { data: dash }] = await Promise.all([
-      supabase.from('plant_summary').select('*').eq('user_id', user.id).eq('is_archived', false).order('created_at', { ascending: false }),
-      supabase.from('user_dashboard').select('usda_zone, active_plants, plants_needing_attention').eq('user_id', user.id).single(),
+      supabase.from('sprout_plant_summary').select('*').eq('user_id', user.id).eq('is_archived', false).order('created_at', { ascending: false }),
+      supabase.from('sprout_user_dashboard').select('usda_zone, active_plants, plants_needing_attention').eq('user_id', user.id).single(),
     ])
 
     setPlants(plantsData ?? [])

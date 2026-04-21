@@ -20,9 +20,9 @@ export default function RewardsPage() {
       if (!user) return
 
       const [{ data: dashData }, { data: allBadges }, { data: earnedBadges }] = await Promise.all([
-        supabase.from('gamification').select('*').eq('user_id', user.id).single(),
-        supabase.from('badge_definitions').select('*').order('xp_reward'),
-        supabase.from('user_badges').select('badge_id, earned_at').eq('user_id', user.id),
+        supabase.from('sprout_gamification').select('*').eq('user_id', user.id).single(),
+        supabase.from('sprout_badge_definitions').select('*').order('xp_reward'),
+        supabase.from('sprout_user_badges').select('badge_id, earned_at').eq('user_id', user.id),
       ])
 
       setGami(dashData)

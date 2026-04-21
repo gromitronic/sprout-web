@@ -80,7 +80,7 @@ function AddAnimalModal({ onClose, onAdded }: { onClose: () => void; onAdded: ()
 
     const housingType = isFish && aqua ? 'aquaponics' : species.housing
 
-    const { error } = await supabase.from('animals').insert({
+    const { error } = await supabase.from('sprout_animals').insert({
       user_id:       user.id,
       species:       species.id,
       breed:         breed || null,
@@ -95,7 +95,7 @@ function AddAnimalModal({ onClose, onAdded }: { onClose: () => void; onAdded: ()
     })
 
     if (error) { toast.error('Could not add animal'); setSaving(false); return }
-    await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: 50, p_multiplier: false })
+    await supabase.rpc('sprout_award_xp', { p_user_id: user.id, p_amount: 50, p_multiplier: false })
     toast.success(`${species.emoji} ${species.label} added! +50 XP`)
     onAdded(); onClose()
   }
@@ -290,12 +290,12 @@ function LogModal({ animal, onClose, onLogged }: { animal: Animal; onClose: () =
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setSaving(false); return }
-    await supabase.from('animal_logs').insert({
+    await supabase.from('sprout_animal_logs').insert({
       user_id: user.id, animal_id: animal.id, log_type: logType,
       quantity: qty ? parseFloat(qty) : null, unit: unit || null,
       notes: notes || null, xp_earned: logType === 'production' ? 25 : 5,
     })
-    await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: logType === 'production' ? 25 : 5, p_multiplier: false })
+    await supabase.rpc('sprout_award_xp', { p_user_id: user.id, p_amount: logType === 'production' ? 25 : 5, p_multiplier: false })
     toast.success(`Logged! +${logType === 'production' ? 25 : 5} XP`)
     onLogged(); onClose()
   }
@@ -357,7 +357,7 @@ function AnimalChat({ animal, onClose }: { animal: Animal; onClose: () => void }
   const [loading,  setLoading]  = useState(true)
 
   useEffect(() => {
-    supabase.from('animal_chat').select('*').eq('animal_id', animal.id)
+    supabase.from('sprout_animal_chat').select('*').eq('animal_id', animal.id)
       .order('created_at', { ascending: true }).limit(30)
       .then(({ data }) => { setMessages(data ?? []); setLoading(false) })
   }, [animal.id])
@@ -490,9 +490,9 @@ function SynergyPanel({ animal }: { animal: Animal }) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       const [{ data: syn }, { data: plants }] = await Promise.all([
-        supabase.from('plant_animal_synergies').select('*')
+        supabase.from('sprout_plant_animal_synergies').select('*')
           .ilike('animal_species', `%${animal.species}%`).order('synergy_type'),
-        supabase.from('plants').select('common_name').eq('user_id', user.id).eq('is_archived', false),
+        supabase.from('sprout_plants').select('common_name').eq('user_id', user.id).eq('is_archived', false),
       ])
       setSynergies(syn ?? [])
       setUserPlants((plants ?? []).map((p: any) => p.common_name.toLowerCase()))
@@ -592,13 +592,13 @@ export default function AnimalsPage() {
   async function load() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { data } = await supabase.from('animals').select('*')
+    const { data } = await supabase.from('sprout_animals').select('*')
       .eq('user_id', user.id).eq('is_archived', false).order('created_at', { ascending: false })
     setAnimals(data ?? [])
     if (data && data.length > 0) {
       const logMap: Record<string, Log[]> = {}
       await Promise.all(data.map(async (a: Animal) => {
-        const { data: logs } = await supabase.from('animal_logs').select('*')
+        const { data: logs } = await supabase.from('sprout_animal_logs').select('*')
           .eq('animal_id', a.id).order('logged_at', { ascending: false }).limit(3)
         logMap[a.id] = logs ?? []
       }))

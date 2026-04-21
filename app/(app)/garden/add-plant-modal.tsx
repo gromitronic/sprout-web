@@ -227,7 +227,7 @@ export default function AddPlantModal({ onClose }: { onClose: () => void }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { toast.error('Not signed in'); return }
 
-    const { data: plant, error } = await supabase.from('plants').insert({
+    const { data: plant, error } = await supabase.from('sprout_plants').insert({
       user_id:      user.id,
       common_name:  name,
       day_count:    days,
@@ -238,8 +238,8 @@ export default function AddPlantModal({ onClose }: { onClose: () => void }) {
 
     if (error) { toast.error('Could not add plant'); return }
 
-    await supabase.rpc('award_xp',    { p_user_id: user.id, p_amount: 10, p_multiplier: false })
-    await supabase.rpc('increment_plant_count', { p_user_id: user.id })
+    await supabase.rpc('sprout_award_xp',    { p_user_id: user.id, p_amount: 10, p_multiplier: false })
+    await supabase.rpc('sprout_increment_plant_count', { p_user_id: user.id })
 
     toast.success(`🌱 ${name} added! +10 XP`)
     router.push(`/chat/${plant.id}`)

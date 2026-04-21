@@ -58,9 +58,9 @@ export default function PlantChatPage() {
       if (!user) { router.push('/login'); return }
 
       const [{ data: plantData }, { data: history }] = await Promise.all([
-        supabase.from('plants').select('id, common_name, latin_name, emoji, health_status, day_count')
+        supabase.from('sprout_plants').select('id, common_name, latin_name, emoji, health_status, day_count')
           .eq('id', plantId).eq('user_id', user.id).single(),
-        supabase.from('chat_histories').select('*')
+        supabase.from('sprout_chat_histories').select('*')
           .eq('plant_id', plantId).eq('user_id', user.id)
           .order('created_at', { ascending: true }).limit(50),
       ])

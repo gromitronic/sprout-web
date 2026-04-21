@@ -90,8 +90,8 @@ export default function EcosystemPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       const [{ data: p }, { data: a }] = await Promise.all([
-        supabase.from('plants').select('id, common_name, emoji, category').eq('user_id', user.id).eq('is_archived', false),
-        supabase.from('animals').select('id, species, name, emoji, count').eq('user_id', user.id).eq('is_archived', false),
+        supabase.from('sprout_plants').select('id, common_name, emoji, category').eq('user_id', user.id).eq('is_archived', false),
+        supabase.from('sprout_animals').select('id, species, name, emoji, count').eq('user_id', user.id).eq('is_archived', false),
       ])
       setPlants(p ?? [])
       setAnimals(a ?? [])
